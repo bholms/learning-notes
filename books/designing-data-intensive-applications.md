@@ -1252,7 +1252,7 @@ A common approach in replicated databases is to allow concurrent writes to creat
 Imagine Alice and Bob are two on-call doctors for a particular shift. Imagine both the request to leave because they are feeling unwell. Unfortunately they happen to click the button to go off call at approximately the same time.
 
     ALICE                                   BOB
-
+    
     ┌─ BEGIN TRANSACTION                    ┌─ BEGIN TRANSACTION
     │                                       │
     ├─ currently_on_call = (                ├─ currently_on_call = (
@@ -1285,16 +1285,16 @@ Ways to prevent write skew are a bit more restricted:
 * The second-best option in this case is probably to explicitly lock the rows that the transaction depends on.
   ```sql
   BEGIN TRANSACTION;
-
+  
   SELECT * FROM doctors
   WHERE on_call = true
   AND shift_id = 1234 FOR UPDATE;
-
+  
   UPDATE doctors
   SET on_call = false
   WHERE name = 'Alice'
   AND shift_id = 1234;
-
+  
   COMMIT;
   ```
 
@@ -1435,14 +1435,14 @@ A long timeout means a long wait until a node is declared dead. A short timeout 
 
 Premature declaring a node is problematic, if the node is actually alive the action may end up being performed twice.
 
-When a node is declared dead, its responsibilities need to be transferred to other nodes, which places additional load on other nodes and the network.
+When a node is declared dead, its responsibilities need to be transferred to other nodes, which places additional load on other nodes and the network. This may results in cascading failure which stops everything.b                                                g
 
 #### Network congestion and queueing
 
 - Different nodes try to send packets simultaneously to the same destination, the network switch must queue them and feed them to the destination one by one. The switch will discard packets when filled up.
 - If CPU cores are busy, the request is queued by the operative system, until applications are ready to handle it.
-- In virtual environments, the operative system is often paused while another virtual machine uses a CPU core. The VM queues the incoming data.
-- TCP performs _flow control_, in which a node limits its own rate of sending in order to avoid overloading a network link or the receiving node. This means additional queuing at the sender.
+- In virtual environments, the operative system is often paused while another virtual machine uses a CPU core. The VM queues the incoming data, which further deteriorate the performance.
+- TCP performs _flow control_, in which a node limits its own rate of sending in order to avoid overloading a network link or the receiving node. This means additional queuing at the sender. (UDP doesn't do this, which is a good fit for VoIP or video streaming application)
 
 You can choose timeouts experimentally by measuring the distribution of network round-trip times over an extended period.
 
@@ -1450,13 +1450,13 @@ Systems can continually measure response times and their variability (_jitter_),
 
 #### Synchronous vs ashynchronous networks
 
-A telephone network estabilishes a _circuit_, we say is _synchronous_ even as the data passes through several routers as it does not suffer from queing. The maximum end-to-end latency of the network is fixed (_bounded delay_).
+A telephone network estabilishes a _circuit_, we say is _synchronous_ even as the data passes through several routers as it does not **suffer from queing**. The maximum end-to-end latency of the network is fixed (_bounded delay_).
 
 A circuit is a fixed amount of reserved bandwidth which nobody else can use while the circuit is established, whereas packets of a TCP connection opportunistically use whatever network bandwidth is available.
 
-**Using circuits for bursty data transfers wastes network capacity and makes transfer unnecessary slow. By contrast, TCP dinamycally adapts the rate of data transfer to the available network capacity.**
+Using circuits for bursty data transfers wastes network capacity and makes transfer unnecessary slow. By contrast, TCP dinamycally adapts the rate of data transfer to the available network capacity.
 
-We have to assume that network congestion, queueing, and unbounded delays will happen. Consequently, there's no "correct" value for timeouts, they need to be determined experimentally.
+We have to assume that **network congestion**, **queueing**, and **unbounded delays** will happen. Consequently, t                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      here's no "correct" value for timeouts, they need to be determined experimentally.
 
 ### Unreliable clocks
 
